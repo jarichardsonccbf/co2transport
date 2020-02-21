@@ -1,0 +1,35 @@
+---
+title: "SP_pull"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(reticulate)
+use_python("C:/Users/fl014036/AppData/Local/Microsoft/WindowsApps/python3.exe")
+# use_virtualenv(r-reticulate)
+
+```
+
+
+```{python}
+
+from shareplum import Site
+from shareplum import Office365
+import pandas as pd
+
+
+authcookie = Office365('https://cocacolaflorida.sharepoint.com', username='SharePointAdmin@cocacolaflorida.com', password='P@$$word').GetCookies()
+site = Site('https://cocacolaflorida.sharepoint.com/Distribution/', authcookie=authcookie)
+sp_list = site.List('Hazardous Material Disclosure Statement')
+data = sp_list.GetListItems()
+
+data = pd.DataFrame(data)
+
+data = data[['Date','Drivers Name', 'Shipment number', 'DSD Location']]
+
+```
+
+```{r}
+SP.shipments <- py$data
+```
+
