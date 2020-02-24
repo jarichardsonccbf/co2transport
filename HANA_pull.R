@@ -68,8 +68,12 @@ df <- hana.shipments %>%
   left_join(SP.shipments, by = c("HANA ship" = "SP.ship")) %>%
   select(-c(PackTypeDesc, Date)) %>%
   rename(Date = `HANA date`) %>%
+  select(-c(`Drivers Name`)) %>%
+  rename(`Drivers Name` = DriverDesc) %>%
   mutate(MATCH = ifelse(is.na(`DSD Location`), "NO FORM", "FORM FILLED"),
          Date = as.character(Date),
-         Date = ymd(Date))
+         Date = ymd(Date),
+         MATCH.binary = ifelse(MATCH == "FORM FILLED", 1, 0)) %>%
+  select(-c(`DSD Location`))
 
 write.csv(df, "outputs/data.csv", row.names = FALSE)
