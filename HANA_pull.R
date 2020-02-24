@@ -3,8 +3,6 @@ library(RJDBC)
 library(keyring)
 library(lubridate)
 
-source("SP_pull.Rmd")
-
 # import and establish hana connection ----
 
 options(java.parameters = "-Xmx8048m")
@@ -49,6 +47,10 @@ param2 <- '20190101'
 
 hana.shipments <- dbGetQuery(jdbcConnection, sql, param1, param2)
 
+sql <- "SELECT * FROM \"ccf-edw.self-service.MDM::Q_CA_R_CCF_FISCAL_CAL\""
+
+fiscal.cal <- dbGetQuery(jdbcConnection, sql)
+
 dbDisconnect(jdbcConnection)
 
 rm(jdbcConnection, jdbcDriver, param1, param2, sql)
@@ -74,6 +76,47 @@ df <- hana.shipments %>%
          Date = as.character(Date),
          Date = ymd(Date),
          MATCH.binary = ifelse(MATCH == "FORM FILLED", 1, 0)) %>%
-  select(-c(`DSD Location`))
+  select(-c(`DSD Location`)) %>%
+  left_join(fiscal.cal %>%
+              mutate(Date = as.Date(Date)), by = "Date") %>%
+  left_join(data.frame(SalesOffice = c("I000",
+                                       "I001",
+                                       "I002",
+                                       "I003",
+                                       "I004",
+                                       "I005",
+                                       "I006",
+                                       "I007",
+                                       "I010",
+                                       "I011",
+                                       "I012",
+                                       "I013",
+                                       "I015",
+                                       "I017",
+                                       "I018",
+                                       "I019",
+                                       "I020",
+                                       "I021",
+                                       "I022"),
+                       Location = c("Tampa Madison",
+                                    "Orlando",
+                                    "Jacksonville",
+                                    "Tampa Sabal",
+                                    "Lakeland",
+                                    "Sarasota",
+                                    "Ft Myers",
+                                    "Ft Pierce",
+                                    "Daytona",
+                                    "Orlando MRC",
+                                    "Gainesville",
+                                    "Brevard",
+                                    "Jacksonville H2",
+                                    "Broward",
+                                    "Palm Beach",
+                                    "Miami Dade",
+                                    "The Keys",
+                                    "Seneca",
+                                    "Cabot")), by = "SalesOffice")
+
 
 write.csv(df, "outputs/data.csv", row.names = FALSE)
