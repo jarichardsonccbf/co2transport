@@ -2,6 +2,7 @@ library(tidyverse)
 library(RJDBC)
 library(keyring)
 library(lubridate)
+library(readxl)
 
 # import and establish hana connection ----
 
@@ -22,15 +23,6 @@ jdbcConnection <- dbConnect(jdbcDriver,
 
 
 # Fetch all results
-
-# "SELECT
-# \"SalesOffice\",
-# \"_GCC_G_ADDKF1\" as \"Additional Key Figures 1\"
-# where
-# \"TradeNameText\" = ? OR
-# \"TradeNameText\" = ? OR
-# \"TradeNameText\" = ? OR
-# \"TradeNameText\" = ?
 
 sql <- "SELECT TO_Number(\"ActualDeliveryDate\") as \"HANA date\",
 \"DriverDesc\",
@@ -116,7 +108,19 @@ df <- hana.shipments %>%
                                     "Miami Dade",
                                     "The Keys",
                                     "Seneca",
-                                    "Cabot")), by = "SalesOffice")
+                                    "Cabot")), by = "SalesOffice") %>%
+  select(Date, "Drivers Name", DriverSupervisorName, "HANA ship", SalesOffice, MATCH, MATCH.binary, FiscalYearPeriod, FiscalYearWeek, Location) %>%
+  left_join(read_excel("CO2 Report 2-25-20.xlsx") %>%
+              select("First Name", "Last Name", "Manager Display Name") %>%
+              mutate(Driver = toupper(paste(`First Name`, `Last Name`))) %>%
+              select("Driver", "Manager Display Name"), by = c("Drivers Name" = "Driver"))
 
+df$DriverSupervisorName[is.na(df$DriverSupervisorName)] <- as.character(df$`Manager Display Name`[is.na(df$DriverSupervisorName)])
+
+df <- df %>%
+  select(-c(`Manager Display Name`)) %>%
+  rename(`Driver Supervisor` = DriverSupervisorName,
+         Driver = `Drivers Name`) %>%
+  mutate(`Driver Supervisor` = toupper(`Driver Supervisor`))
 
 write.csv(df, "outputs/data.csv", row.names = FALSE)
