@@ -3,6 +3,13 @@ library(RJDBC)
 library(keyring)
 library(lubridate)
 library(readxl)
+library(reticulate)
+
+source_python("SP_pull.py")
+
+SP.shipments <- data_df
+
+rm(authcookie, data, data_df, r, site, sp_list, Office365, R, Site)
 
 # import and establish hana connection ----
 

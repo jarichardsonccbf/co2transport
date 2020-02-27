@@ -17,6 +17,6 @@ site = Site('https://cocacolaflorida.sharepoint.com/Distribution/', authcookie=a
 sp_list = site.List('Hazardous Material Disclosure Statement') 
 data = sp_list.GetListItems()
 
-data = pd.DataFrame(data)
+data_df = pd.DataFrame(data)
 
-data = data[['Date','Drivers Name', 'Shipment number', 'DSD Location']]
+data_df = data_df[['Date','Drivers Name', 'Shipment number', 'DSD Location']]
