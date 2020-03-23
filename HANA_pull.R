@@ -1,3 +1,5 @@
+#C:/Users/fl014036/Documents/R/R-3.6.2/library/taskscheduleR/extdata
+
 library(tidyverse)
 library(RJDBC)
 library(keyring)
@@ -5,11 +7,25 @@ library(lubridate)
 library(readxl)
 library(reticulate)
 
-source_python("SP_pull.py")
+py_run_string("from shareplum import Site")
+py_run_string("from shareplum import Office365")
+py_run_string("import pandas as pd")
 
-SP.shipments <- data_df
+py_run_string("authcookie = Office365('https://cocacolaflorida.sharepoint.com', username='SharePointAdmin@cocacolaflorida.com', password='P@$$word').GetCookies()")
 
-rm(authcookie, data, data_df, r, site, sp_list, Office365, R, Site)
+py_run_string("site = Site('https://cocacolaflorida.sharepoint.com/Distribution/', authcookie=authcookie)")
+
+py_run_string("sp_list = site.List('Hazardous Material Disclosure Statement') ")
+
+py_run_string("data = sp_list.GetListItems()")
+
+py_run_string("data_df = pd.DataFrame(data)")
+
+py_run_string("data_df = data_df[['Date','Drivers Name', 'Shipment number', 'DSD Location']]")
+
+py_run_string("print(data_df)")
+
+SP.shipments <- py$data_df
 
 # import and establish hana connection ----
 
@@ -34,8 +50,10 @@ jdbcConnection <- dbConnect(jdbcDriver,
 sql <- "SELECT TO_Number(\"ActualDeliveryDate\") as \"HANA date\",
 \"DriverDesc\",
 \"DriverSupervisorName\",
+\"ShippingPoint\",
 \"ShipmentNumber\" as \"HANA ship\",
 \"PackTypeDesc\",
+\"TransportationPlanningPoint\",
 \"SalesOffice\" FROM \"cona-reporting.delivery-execution::Q_CA_S_DeliveryExecution\"(
             'PLACEHOLDER' = ('$$IP_KeyDate$$', '202001')) where
 \"PackTypeDesc\" = ? AND
@@ -50,6 +68,12 @@ sql <- "SELECT * FROM \"ccf-edw.self-service.MDM::Q_CA_R_CCF_FISCAL_CAL\""
 
 fiscal.cal <- dbGetQuery(jdbcConnection, sql)
 
+# sql <- 'SELECT \"CustomerNumber\",
+#                \"DeliveringPlant\"
+#          FROM \"cona-mdm::Q_CA_R_MDM_Customer_GeneralSalesArea\"'
+#
+# delivery <- dbGetQuery(jdbcConnection, sql)
+
 dbDisconnect(jdbcConnection)
 
 rm(jdbcConnection, jdbcDriver, param1, param2, sql)
@@ -59,6 +83,10 @@ rm(jdbcConnection, jdbcDriver, param1, param2, sql)
 class(SP.shipments$`Shipment number`)
 
 SP.shipments$`Shipment number` <- unlist(SP.shipments$`Shipment number`)
+
+class(SP.shipments$`DSD Location`)
+
+SP.shipments$`DSD Location` <- unlist(SP.shipments$`DSD Location`)
 
 SP.shipments <- SP.shipments %>%
   rename(SP.ship = `Shipment number`)
