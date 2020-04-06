@@ -145,7 +145,7 @@ df <- hana.shipments %>%
                                     "Seneca",
                                     "Cabot")), by = "SalesOffice") %>%
   select(Date, "Drivers Name", DriverSupervisorName, "HANA ship", SalesOffice, MATCH, MATCH.binary, FiscalYearPeriod, FiscalYearWeek, Location) %>%
-  left_join(read_excel("CO2 Report 2-25-20.xlsx") %>%
+  left_join(read_excel("CO2 Report.xlsx") %>%
               select("First Name", "Last Name", "Manager Display Name") %>%
               mutate(Driver = toupper(paste(`First Name`, `Last Name`))) %>%
               select("Driver", "Manager Display Name"), by = c("Drivers Name" = "Driver"))
