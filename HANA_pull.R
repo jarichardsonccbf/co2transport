@@ -19,14 +19,14 @@ old <- read.csv("outputs/data.csv", stringsAsFactors = FALSE) %>%
   rename(`Drivers Name` = Drivers.Name,
          `Driver Sup` = Driver.Sup,
          `HANA ship` = HANA.ship) %>%
-# mutate(Date = as.Date(Date, "%m/%d/%Y"))
+mutate(Date = as.Date(Date, "%m/%d/%Y"))
 mutate(Date = as.Date(Date))
 
 py_run_string("from shareplum import Site")
 py_run_string("from shareplum import Office365")
 py_run_string("import pandas as pd")
 
-py_run_string("authcookie = Office365('https://cocacolaflorida.sharepoint.com', username='fl014036@cocacolaflorida.com', password='Anime8!cfcokU').GetCookies()")
+py_run_string("authcookie = Office365('https://cocacolaflorida.sharepoint.com', username='sharepointadmin@cocacolaflorida.com', password='345#$%ERTdfgcvb').GetCookies()")
 
 py_run_string("site = Site('https://cocacolaflorida.sharepoint.com/Distribution/', authcookie=authcookie)")
 
@@ -156,7 +156,7 @@ df <- df %>%
                                        "I018",
                                        "I019",
                                        "I020",
-                                       "I000"),
+                                       "I008"),
                        Location = c("Tampa Madison",
                                     "Orlando",
                                     "Jacksonville",
@@ -174,7 +174,7 @@ df <- df %>%
                                     "Palm Beach",
                                     "Miami Dade",
                                     "The Keys",
-                                    "Tampa Madison"),
+                                    "Spring Hill"),
                        `Facility Name` = c("Tampa DC (Madison) - 3C05",
                                            "Orlando Combo Center - 3C14",
                                            "Jacksonville Combo Center - 3C13",
